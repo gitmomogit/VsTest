@@ -1,0 +1,189 @@
+﻿@{
+    Layout = null;
+    ViewBag.Title = "登录";
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>AdminLTE 2 | Log in</title>
+    <!-- Tell the browser to be responsive to screen width -->
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <!-- Bootstrap 3.3.7 -->
+    @Styles.Render("~/bootstrap/css")
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="@(Url.Content("~/adminlte/bower_components/font-awesome/css/font-awesome.min.css"))">
+    <!-- Ionicons -->
+    @Styles.Render("~/ionicons/css")
+    <!-- Theme style -->
+    @Styles.Render("~/adminlte/css")
+    @Styles.Render("~/icheck/css/sqare/blue")
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    <!-- Google Font -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">
+
+    <style>
+        .authcode {
+            width:80px;
+            height:34px;
+            display:block;            
+            border:1px solid #d2d6de;
+            top:0;
+            right:0;
+            position:absolute;
+        }
+        .row-authcode {
+            padding-right:85px;
+        }
+        .tips {
+            bottom: 10px;
+            z-index: 99;
+            width: 100%;
+        }
+        .tips-msg {
+            height: 30px;
+            line-height: 30px;
+            color: red;
+            margin: 0 auto;
+            border-radius: 5px;
+            width: 300px;
+            font-size: 14px;
+            text-align:center;
+        }
+            .tips-msg i {
+                position: relative;
+                top: 0.5px;
+                font-size: 15px;
+                padding-right: 5px;
+            }
+    </style>
+</head>
+<body class="hold-transition login-page">
+    <div class="login-box">
+        <div class="login-logo">
+            <a href="../../index2.html"><b>Admin</b>LTE</a>
+        </div>
+        <!-- /.login-logo -->
+        <div class="login-box-body">
+            <p class="login-box-msg">账户登录</p>
+            <form>
+                <div class="form-group has-feedback">
+                    <input name="account" id="txtAccount" type="text" class="form-control" placeholder="账号">
+                    <span class="glyphicon glyphicon-user form-control-feedback"></span>
+                </div>
+                <div class="form-group has-feedback">
+                    <input name="password" id="txtPassword" type="password" class="form-control" placeholder="密码">
+                    <span class="glyphicon glyphicon-lock form-control-feedback"></span>
+                </div>
+                <div class="form-group has-feedback row-authcode">
+                    <input name="vcode" id="txtVCode" type="text" maxlength="6" class="form-control" placeholder="验证码">
+                    <img id="imgcode" class="authcode" src="@(Url.Content("~/account/getauthcode"))">
+                </div>
+                <div class="row">
+                    @*<div class="col-xs-8">
+                        <div class="checkbox icheck">
+                            <label>
+                                <input type="checkbox"> 记住我
+                            </label>
+                        </div>
+                    </div>*@
+                    <!-- /.col -->
+                    <div class="col-xs-12">
+                        <button type="button" id="btnLogin" class="btn btn-primary btn-block btn-flat">登录</button>
+                    </div>
+                    
+                    <!-- /.col -->
+                </div>
+                <div class="row">
+                    <div class="col-xs-12">
+                        <div class="tips"></div>
+                    </div>
+                </div>
+            </form>            
+        </div>
+        <!-- /.login-box-body -->
+    </div>
+    <!-- /.login-box -->
+    <!-- jQuery 3 -->
+    @Scripts.Render("~/jquery/js")
+    <!-- Bootstrap 3.3.7 -->
+    @Scripts.Render("~/bootstrap/js")
+    <!-- iCheck -->
+    @Scripts.Render("~/icheck/js")
+    @Scripts.Render("~/jquery-cookie/js")
+    @Scripts.Render("~/jquery-md5/js")
+    <script>
+        (function ($) {
+            $.login = {
+                formMessage: function (msg) {
+                    $('.tips').find('.tips-msg').remove();
+                    $('.tips').append('<div class="tips-msg"><i class="fa fa-question-circle"></i>' + msg + '</div>');
+                },
+                loginClick: function () {
+                    var $username = $("#txtAccount");
+                    var $password = $("#txtPassword");
+                    var $code = $("#txtVCode");
+                    if ($username.val() == "") {
+                        $username.focus();
+                        $.login.formMessage('请输入账号。');
+                        return false;
+                    } else if ($password.val() == "") {
+                        $password.focus();
+                        $.login.formMessage('请输入登录密码。');
+                        return false;
+                    } else if ($code.val() == "") {
+                        $code.focus();
+                        $.login.formMessage('请输入验证码。');
+                        return false;
+                    } else {
+                        $("#btnLogin").attr('disabled', 'disabled').find('span').html("登录中...");
+                        $.ajax({
+                            url: "/Login/CheckLogin",
+                            data: { username: $.trim($username.val()), password: $.md5($.trim($password.val())), code: $.trim($code.val()) },
+                            type: "post",
+                            dataType: "json",
+                            success: function (data) {
+                                if (data.state == "success") {
+                                    $("#btnLogin").find('span').html("登录成功，正在跳转...");
+                                    window.setTimeout(function () {
+                                        window.location.href = "@(Url.Content("~/home/index"))";
+                                    }, 500);
+                                } else {
+                                    $("#btnLogin").removeAttr('disabled').find('span').html("登录");
+                                    $("#imgcode").trigger("click");
+                                    $code.val('');
+                                    $.login.formMessage(data.message);
+                                }
+                            }
+                        });
+                    }
+                },
+                init: function () {
+                    $("#imgcode").click(function () {
+                        $(this).attr("src", "@(Url.Content("~/account/getauthcode"))" + "?v=" + Math.random());
+                    });
+                    $("#btnLogin").click(function () {
+                        $.login.loginClick();
+                    });
+                    document.onkeydown = function (e) {
+                        if (!e) e = window.event;
+                        if ((e.keyCode || e.which) == 13) {
+                            document.getElementById("btnLogin").focus();
+                            document.getElementById("btnLogin").click();
+                        }
+                    }
+                }
+            };
+            $(function () {
+                $.login.init();
+            });
+        })(jQuery);
+    </script>
+</body>
+</html>
