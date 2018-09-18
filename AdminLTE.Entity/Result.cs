@@ -8,5 +8,6 @@ namespace AdminLTE.Entity
 {
     class Result
     {
+        int a = 2;
     }
 }
